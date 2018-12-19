@@ -1,6 +1,6 @@
 // @ts-check
 import { pub } from "./pubsubhub";
-import { registerDefinitionMapping } from "./dfn";
+import { registerDefinition } from "./dfn-map";
 import { wrapInner } from "./utils";
 
 const topLevelEntities = new Set([
@@ -135,7 +135,7 @@ function addAlternativeNames(dfn, names, definitionMap) {
   const lt = dfn.dataset.lt ? dfn.dataset.lt.split("|") : [];
   lt.push(...names);
   dfn.dataset.lt = [...new Set(lt)].join("|");
-  registerDefinitionMapping(dfn, names, definitionMap);
+  registerDefinition(dfn, names);
 }
 
 /**
@@ -160,7 +160,7 @@ function findNormalDfn(defn, parent, name, definitionMap) {
       dfns = dfnForArray;
       // Found it: register with its local name
       delete definitionMap[resolvedName];
-      registerDefinitionMapping(dfns[0], [nameLow], definitionMap);
+      registerDefinition(dfns[0], [nameLow]);
     }
   }
   if (dfns.length > 1) {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-const { Builder } = require("./builder");
+const { Builder } = require("./builder.js");
 const cmdPrompt = require("prompt");
 const colors = require("colors");
 const { exec } = require("child_process");
@@ -131,7 +131,8 @@ const Prompts = {
       ["style", "🖌"],
       ["test", "👍"],
     ]);
-    const commitHints = /^l10n|^docs|^chore|^fix|^style|^refactor|^test|^feat|^breaking\schange/i;
+    const commitHints =
+      /^l10n|^docs|^chore|^fix|^style|^refactor|^test|^feat|^breaking\schange/i;
     return (
       commits
         .split("\n")
@@ -150,7 +151,7 @@ const Prompts = {
               : "❓";
           // colorize
           if (match) {
-            result = result.replace(match.toLowerCase(), colors[match](match));
+            result = result.replace(match.toLowerCase(), colors.green(match));
           }
           return `  ${icon} ${result}`;
         })
@@ -330,6 +331,10 @@ const indicators = new Map([
 ]);
 
 const run = async () => {
+  const npmVersion = await npm("--version");
+  if (!npmVersion.trim().startsWith("6")) {
+    throw new Error(`Must use npm 6.x for release. Found ${npmVersion}`);
+  }
   const initialBranch = await getCurrentBranch();
   try {
     // 1. Confirm maintainer is on up-to-date and on the develop branch ()
@@ -360,7 +365,7 @@ const run = async () => {
 
     // 3. Run the build script (node tools/builder.js).
     await npm("run builddeps");
-    for (const name of ["w3c", "geonovum", "dini"]) {
+    for (const name of ["w3c", "geonovum", "dini", "aom"]) {
       await Builder.build({ name });
     }
     console.log(colors.green(" Making sure the generated version is ok... 🕵🏻"));
@@ -397,7 +402,7 @@ const run = async () => {
       await Prompts.askSwitchToBranch(MAIN_BRANCH, initialBranch);
     }
   } catch (err) {
-    console.error(colors.red(`\n☠  ${err.message}`));
+    console.error(colors.red(`\n☠  ${err.stack}`));
     const currentBranch = await getCurrentBranch();
     if (initialBranch !== currentBranch) {
       await git(`checkout ${initialBranch}`);
